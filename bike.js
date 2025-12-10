@@ -1,0 +1,145 @@
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// Road settings
+const roadWidth = 200;
+const roadX = canvas.width/2 - roadWidth/2;
+let scrollY = 0;
+
+// Player bike
+let player = { x:canvas.width/2-25, y:500, width:50, height:100, color:"#ff0000", tilt:0 };
+
+// Obstacles and background
+let obstacles=[];
+let backgrounds=[];
+let score=0;
+let speed=5;
+let gameInterval;
+let left=false, right=false;
+let gameRunning=false;
+
+// Keyboard controls
+document.addEventListener("keydown", e => { if(e.key==="ArrowLeft") left=true; if(e.key==="ArrowRight") right=true; });
+document.addEventListener("keyup", e => { if(e.key==="ArrowLeft") left=false; if(e.key==="ArrowRight") right=false; });
+
+// Mobile controls
+canvas.addEventListener("touchstart", e=>{
+  let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+  if(touchX<canvas.width/2){ left=true; right=false; } else { right=true; left=false; }
+});
+canvas.addEventListener("touchend", ()=>{ left=false; right=false; });
+
+// Draw road and lanes
+function drawRoad(){
+  ctx.fillStyle="#333";
+  ctx.fillRect(roadX,0,roadWidth,canvas.height);
+  ctx.strokeStyle="white";
+  ctx.lineWidth=4;
+  ctx.setLineDash([20,20]);
+  for(let i=0;i<4;i++){
+    ctx.beginPath();
+    ctx.moveTo(roadX + roadWidth/4*(i+1), scrollY%40);
+    ctx.lineTo(roadX + roadWidth/4*(i+1), canvas.height);
+    ctx.stroke();
+  }
+}
+
+// Draw player bike
+function drawPlayer(){
+  ctx.save();
+  ctx.translate(player.x + player.width/2, player.y + player.height/2);
+  ctx.rotate(player.tilt * Math.PI/180);
+  ctx.fillStyle = player.color;
+  ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
+  ctx.restore();
+}
+
+// Draw obstacles
+function drawObstacles(){
+  for(let obs of obstacles){
+    ctx.fillStyle = obs.color;
+    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+    obs.y += obs.speed;
+  }
+}
+
+// Draw background objects
+function drawBackgrounds(){
+  for(let bg of backgrounds){
+    ctx.fillStyle="#228B22";
+    ctx.fillRect(bg.x, bg.y, bg.width, bg.height);
+    bg.y += speed;
+  }
+}
+
+// Create obstacle cars
+function createObstacle(){
+  let obsWidth=50, obsHeight=100;
+  let lane = Math.floor(Math.random()*3);
+  let xPos = roadX + 20 + lane*(roadWidth/3 - obsWidth/2);
+  let color = Math.random()<0.5?"#ff0000":"#0000ff";
+  let obsSpeed = speed + Math.random()*2;
+  obstacles.push({x:xPos, y:-obsHeight, width:obsWidth, height:obsHeight, color:color, speed:obsSpeed});
+}
+
+// Create background trees
+function createBackground(){
+  let x = Math.random()<0.5?roadX-50:roadX+roadWidth+10;
+  let y = -50;
+  backgrounds.push({x:x,y:y,width:30,height:50});
+}
+
+// Check collision
+function checkCollision(){
+  for(let obs of obstacles){
+    if(player.x < obs.x + obs.width &&
+       player.x + player.width > obs.x &&
+       player.y < obs.y + obs.height &&
+       player.y + player.height > obs.y){ return true; }
+  }
+  return false;
+}
+
+// Update game
+function updateGame(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  scrollY += speed;
+
+  drawRoad();
+
+  if(left && player.x>roadX){ player.x -=7; player.tilt=-15; }
+  else if(right && player.x + player.width<roadX+roadWidth){ player.x +=7; player.tilt=15; }
+  else{ player.tilt=0; }
+
+  drawBackgrounds();
+  drawObstacles();
+  drawPlayer();
+
+  obstacles = obstacles.filter(obs=>obs.y<canvas.height);
+  backgrounds = backgrounds.filter(bg=>bg.y<canvas.height);
+
+  if(Math.random()<0.03) createObstacle();
+  if(Math.random()<0.02) createBackground();
+
+  if(checkCollision()){ endGame(); return; }
+
+  score++; document.getElementById("score").textContent = score;
+  if(score%500===0) speed+=0.5;
+}
+
+// Start / End game
+function startGame(){
+  if(gameRunning) return;
+  gameRunning=true; obstacles=[]; backgrounds=[]; score=0; speed=5;
+  player.x=canvas.width/2-25; player.tilt=0;
+  gameInterval=setInterval(updateGame,30);
+  document.getElementById("startBtn").style.display="none";
+}
+
+function endGame(){
+  clearInterval(gameInterval); gameRunning=false;
+  alert("💥 Crash! Game Over\nScore: "+score);
+  document.getElementById("startBtn").style.display="inline-block";
+}
+
+document.getElementById("startBtn").addEventListener("click", startGame);

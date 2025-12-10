@@ -1,0 +1,39 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #222;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+h1 {
+    color: #00ff88;
+    margin: 10px;
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+    border: 3px solid #00ff88;
+    background: #444;
+}
+
+#scoreBoard {
+    font-size: 18px;
+    margin: 10px;
+}
+
+#startBtn {
+    background: #00ff88;
+    color: black;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#startBtn:hover {
+    background: #00cc6a;
+}
