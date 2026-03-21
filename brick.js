@@ -1,9 +1,4 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const startBtn = document.getElementById("startBtn");
-const usernameInput = document.getElementById("usernameInput");
-const startContainer = document.getElementById("startContainer");
-const scoreboard = document.getElementById("scoreboard");
+
 
 let username = '';
 let gameStarted = false;
